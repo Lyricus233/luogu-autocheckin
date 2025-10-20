@@ -1,6 +1,7 @@
 const UA = process.env.USER_AGENT || '';
 const COOKIE = process.env.LUOGU_COOKIE || '';
 const CSRF_OVERRIDE = process.env.LUOGU_CSRF || '';
+const BENBEN_SOURCE = process.env.BENBEN_SOURCE || 'none';
 
 async function getCsrf() {
   if (CSRF_OVERRIDE) return CSRF_OVERRIDE;
@@ -96,20 +97,17 @@ async function postBenben(csrf, content) {
   try {
     const csrf = await getCsrf();
     await checkin(csrf);
-    // const h = await hitokoto();
-    const p = await jinrishici();
-    console.log('use jinrishici.');
-    console.log(p);
-    await postBenben(csrf, p);
-    // if (h.trim().length > 0) {
-    //   console.log('use hitokoto.');
-    //   console.log(h);
-    //   await postBenben(csrf, h);
-    // } else if (p.trim().length > 0) {
-    //   console.log('use jinrishici.');
-    //   console.log(p);
-    //   await postBenben(csrf, p);
-    // }
+    if (BENBEN_SOURCE === 'jinrishici') {
+      const p = await jinrishici();
+      console.log('use jinrishici.');
+      console.log(p);
+      await postBenben(csrf, p);
+    } else if (BENBEN_SOURCE === 'hitokoto') {
+      const h = await hitokoto();
+      console.log('use hitokoto.');
+      console.log(h);
+      await postBenben(csrf, h);
+    }
     console.log('done.');
   } catch (e) {
     console.error(e.message || e);

@@ -18,4 +18,5 @@ jobs:
           LUOGU_COOKIE: ${{ secrets.LUOGU_COOKIE }}
           LUOGU_CSRF: ${{ secrets.LUOGU_CSRF }}
           USER_AGENT: ${{ secrets.USER_AGENT }}
+          BENBEN_SOURCE: none
         run: node checkin.js
