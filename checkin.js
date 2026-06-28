@@ -1,3 +1,4 @@
+const DIAGNOSTIC = process.env.DIAGNOSTIC === 'true';
 const UA = process.env.USER_AGENT || '';
 const COOKIE = process.env.LUOGU_COOKIE || '';
 const CSRF_OVERRIDE = process.env.LUOGU_CSRF || '';
@@ -5,7 +6,17 @@ const BENBEN_SOURCE = process.env.BENBEN_SOURCE || 'none';
 
 async function getCsrf() {
   if (CSRF_OVERRIDE) return CSRF_OVERRIDE;
-  const res = await fetch('https://www.luogu.com.cn/', { headers: { cookie: COOKIE } });
+  console.log('[csrf] cookie exists:', Boolean(COOKIE));
+  console.log('[csrf] cookie length:', COOKIE?.length || 0);
+  console.log('[csrf] user-agent exists:', Boolean(UA));
+  console.log('[csrf] user-agent length:', UA?.length || 0);
+  const res = await fetch('https://www.luogu.com.cn/', {
+    headers: {
+      cookie: COOKIE,
+      'user-agent': UA
+    }
+  });
+  console.log('[csrf] res: ', res);
   const html = await res.text();
   const m = html.match(/<meta name="csrf-token" content="([^"]+)"/);
   if (!m) throw new Error('cannot get csrf from homepage.');
@@ -96,6 +107,10 @@ async function postBenben(csrf, content) {
   }
   try {
     const csrf = await getCsrf();
+    if (DIAGNOSTIC) {
+      console.log('[diagnostic] skip check-in');
+      return;
+    }
     await checkin(csrf);
     if (BENBEN_SOURCE === 'jinrishici') {
       const p = await jinrishici();
