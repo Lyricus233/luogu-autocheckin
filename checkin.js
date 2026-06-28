@@ -1,22 +1,30 @@
+const { EnvHttpProxyAgent } = require('undici');
+
 const DIAGNOSTIC = process.env.DIAGNOSTIC === 'true';
 const UA = process.env.USER_AGENT || '';
 const COOKIE = process.env.LUOGU_COOKIE || '';
 const CSRF_OVERRIDE = process.env.LUOGU_CSRF || '';
 const BENBEN_SOURCE = process.env.BENBEN_SOURCE || 'none';
 
+const proxyDispatcher = new EnvHttpProxyAgent();
+
 async function getCsrf() {
   if (CSRF_OVERRIDE) return CSRF_OVERRIDE;
-  console.log('[csrf] cookie exists:', Boolean(COOKIE));
-  console.log('[csrf] cookie length:', COOKIE?.length || 0);
-  console.log('[csrf] user-agent exists:', Boolean(UA));
-  console.log('[csrf] user-agent length:', UA?.length || 0);
   const res = await fetch('https://www.luogu.com.cn/', {
+    dispatcher: proxyDispatcher,
+    redirect: 'follow',
     headers: {
       cookie: COOKIE,
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
       'user-agent': UA
     }
   });
   console.log('[csrf] res: ', res);
+  console.log('[csrf] cf-mitigated:', res.headers.get('cf-mitigated'));
+  if (res.headers.get('cf-mitigated') === 'challenge') {
+    throw new Error('Cloudflare challenge detected on proxy IP.');
+  }
   const html = await res.text();
   const m = html.match(/<meta name="csrf-token" content="([^"]+)"/);
   if (!m) throw new Error('cannot get csrf from homepage.');
@@ -127,5 +135,7 @@ async function postBenben(csrf, content) {
   } catch (e) {
     console.error(e.message || e);
     process.exit(1);
+  } finally {
+    await proxyDispatcher.close();
   }
 })();

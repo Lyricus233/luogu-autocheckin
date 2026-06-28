@@ -13,10 +13,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Install dependencies
+        run: npm ci
       - name: Run
         env:
           LUOGU_COOKIE: ${{ secrets.LUOGU_COOKIE }}
           LUOGU_CSRF: ${{ secrets.LUOGU_CSRF }}
           USER_AGENT: ${{ secrets.USER_AGENT }}
           BENBEN_SOURCE: none
+          HTTPS_PROXY: ${{ secrets.LUOGU_HTTPS_PROXY }}
+          HTTP_PROXY: ${{ secrets.LUOGU_HTTPS_PROXY }}
         run: node checkin.js
