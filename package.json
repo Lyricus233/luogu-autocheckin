@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "description": "Support automatic check-in for Luogu",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "undici": "^8.5.0"
+  }
 }
